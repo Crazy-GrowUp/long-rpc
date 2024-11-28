@@ -20,7 +20,7 @@
         </dependency>
         <dependency>
             <groupId>com.zyl</groupId>
-            <artifactId>long-rpc-easy</artifactId>
+            <artifactId>long-rpc-core</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
