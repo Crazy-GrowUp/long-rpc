@@ -39,7 +39,7 @@ public class UserServiceProxy implements UserService {
             byte[] result = new byte[]{};
             HttpResponse httpResponse = null;
             try {
-                httpResponse = HttpRequest.post("http://localhost:8080").body(bodyBytes).execute();
+                httpResponse = HttpRequest.post("http://localhost:8083").body(bodyBytes).execute();
 
                 result = httpResponse.bodyBytes();
             } catch (Exception e) {

@@ -8,7 +8,7 @@ import com.zyl.example.common.model.User;
  * @author: yl.zhan
  * @create: 2024-11-25 11:03
  **/
-public interface UserService{
+public interface UserService {
 
     /*
      * @Description 获取用户信息
@@ -20,5 +20,10 @@ public interface UserService{
      * @return com.zyl.example.common.model.User
      **/
     User getUser(User user);
+
+
+    default short getNumber() {
+        return (short) 4;
+    }
 
 }

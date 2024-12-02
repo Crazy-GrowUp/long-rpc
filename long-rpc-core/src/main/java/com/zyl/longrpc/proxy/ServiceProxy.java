@@ -37,7 +37,7 @@ public class ServiceProxy implements InvocationHandler {
             byte[] bodyBytes = serializer.serialize(rpcRequest);
             // 发送请求
             // TODO 地址被写死了（需要使用注册中心和服务发现机制解决）
-            httpResponse = HttpRequest.post("http://localhost:8080")
+            httpResponse = HttpRequest.post("http://localhost:8083")
                     .body(bodyBytes)
                     .execute();
 
