@@ -1,0 +1,4 @@
+rpc:
+  name: longrpcxxx
+  version: 1.2
+  serverPort: 8084
