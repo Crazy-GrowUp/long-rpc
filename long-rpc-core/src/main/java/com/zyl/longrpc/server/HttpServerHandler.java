@@ -1,10 +1,12 @@
 package com.zyl.longrpc.server;
 
+import com.zyl.longrpc.RpcApplication;
 import com.zyl.longrpc.model.RpcRequest;
 import com.zyl.longrpc.model.RpcResponse;
 import com.zyl.longrpc.registry.LocalRegistry;
 import com.zyl.longrpc.serializer.JdkSerializer;
 import com.zyl.longrpc.serializer.Serializer;
+import com.zyl.longrpc.serializer.SerializerFactory;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerRequest;
@@ -24,7 +26,8 @@ public class HttpServerHandler implements Handler<HttpServerRequest> {
     @Override
     public void handle(HttpServerRequest request) {
         // 指定序列化器
-        final Serializer serializer = new JdkSerializer();
+//        final Serializer serializer = new JdkSerializer();
+        final Serializer serializer = SerializerFactory.getInstance(RpcApplication.getRpcConfig().getSerializer());
 
         // 记录日志
         System.out.println("Received request:" + request.method() + "  " + request.uri());

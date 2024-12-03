@@ -1,5 +1,6 @@
 package com.zyl.longrpc.config;
 
+import com.zyl.longrpc.serializer.SerializerKeys;
 import lombok.Data;
 
 /**
@@ -36,5 +37,10 @@ public class RpcConfig {
      * 模拟调用（开启模拟数据模式）
      **/
     private boolean mock = false;
+
+    /**
+     * 序列化器
+     **/
+    private String serializer = SerializerKeys.JDK;
 
 }
