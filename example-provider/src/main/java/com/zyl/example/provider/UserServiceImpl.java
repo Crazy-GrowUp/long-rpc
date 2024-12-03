@@ -16,4 +16,8 @@ public class UserServiceImpl implements UserService {
         user.setName("你的名字是："+user.getName());
         return user;
     }
+
+    public short getNumber(){
+        return (short)3;
+    }
 }

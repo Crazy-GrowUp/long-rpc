@@ -2,4 +2,5 @@ jdk=com.zyl.longrpc.serializer.JdkSerializer
 hessian=com.zyl.longrpc.serializer.HessianSerializer
 json=com.zyl.longrpc.serializer.JsonSerializer
 kryo=com.zyl.longrpc.serializer.KryoSerializer
+hessian2=com.zyl.longrpc.serializer.Hessian2Serializer
 
