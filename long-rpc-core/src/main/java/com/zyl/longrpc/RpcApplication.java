@@ -1,7 +1,10 @@
 package com.zyl.longrpc;
 
+import com.zyl.longrpc.config.RegistryConfig;
 import com.zyl.longrpc.config.RpcConfig;
 import com.zyl.longrpc.constant.RpcConstant;
+import com.zyl.longrpc.registry.Registry;
+import com.zyl.longrpc.registry.RegistryFactory;
 import com.zyl.longrpc.utlis.ConfigUtils;
 import lombok.extern.slf4j.Slf4j;
 
@@ -19,6 +22,12 @@ public class RpcApplication {
         rpcConfig = newConfig;
 //        log.info("RpcApplication init:{}", rpcConfig.toString());
         log.info("RpcApplication init");
+
+        //注册中心初始化
+        RegistryConfig registryConfig = rpcConfig.getRegistryConfig();
+        Registry registry = RegistryFactory.getInstance(registryConfig.getRegistry());
+        registry.init(registryConfig);
+        log.info("registry init,config={}", registryConfig);
     }
 
 
