@@ -4,6 +4,7 @@ import com.zyl.longrpc.config.RegistryConfig;
 import com.zyl.longrpc.model.ServiceMetaInfo;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 /**
  * @program: long-rpc
@@ -54,5 +55,23 @@ public interface Registry {
      * @Date 3:55 PM 12/4/2024
      * @Author yl.zhan
      **/
-    void destroy();
+    void destroy() throws ExecutionException, InterruptedException;
+
+
+    /**
+     * @Description 心跳检测（服务端使用）
+     * @Date 2:32 PM 12/5/2024
+     * @Author yl.zhan
+     **/
+    void heartBeat();
+
+    /**
+     * @Description 监听注册的服务 （消费者/客户端使用）
+     * @Date 3:43 PM 12/5/2024
+     * @Author yl.zhan
+     * @Param
+     * @return
+     **/
+    void watch(String serviceKey);
+
 }

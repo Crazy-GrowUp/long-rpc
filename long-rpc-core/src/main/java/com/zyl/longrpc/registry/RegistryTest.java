@@ -73,4 +73,13 @@ public class RegistryTest {
 
     }
 
+    @Test
+    public void heartBeat() throws Exception {
+        register();
+
+        // 阻塞一分钟看看心跳是否有效
+        Thread.sleep(60*1000L);
+
+    }
+
 }

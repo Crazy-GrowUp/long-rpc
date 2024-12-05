@@ -19,7 +19,7 @@ public class ConsumerExample {
     public static void main(String[] args) {
 
 //        RpcConfig rpcConfig = RpcApplication.getRpcConfig();
-        RpcConfig rpcConfig = ConfigUtils.loadConfig(RpcConfig.class, RpcConstant.DEFAULT_CONFIG_PREFIX);
+//        RpcConfig rpcConfig = ConfigUtils.loadConfig(RpcConfig.class, RpcConstant.DEFAULT_CONFIG_PREFIX);
 
         UserService userService = ServiceProxyFactory.getProxy(UserService.class);
 
@@ -29,6 +29,14 @@ public class ConsumerExample {
         User user1 = userService.getUser(user);
         System.out.println("user1:"+user1);
         System.out.println("number:"+number);
+
+//        UserService userService2 = ServiceProxyFactory.getProxy(UserService.class);
+//        User user2 = userService2.getUser(user);
+//        short number1= userService2.getNumber();
+//        System.out.println("user2:"+user2);
+//        UserService userService3 = ServiceProxyFactory.getProxy(UserService.class);
+//        User user3 = userService3.getUser(user);
+//        short num3 = userService3.getNumber();
 
 
     }

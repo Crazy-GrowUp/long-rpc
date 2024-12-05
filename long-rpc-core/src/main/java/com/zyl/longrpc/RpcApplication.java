@@ -6,7 +6,10 @@ import com.zyl.longrpc.constant.RpcConstant;
 import com.zyl.longrpc.registry.Registry;
 import com.zyl.longrpc.registry.RegistryFactory;
 import com.zyl.longrpc.utlis.ConfigUtils;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.concurrent.ExecutionException;
 
 /**
  * @program: long-rpc
@@ -28,14 +31,26 @@ public class RpcApplication {
         Registry registry = RegistryFactory.getInstance(registryConfig.getRegistry());
         registry.init(registryConfig);
         log.info("registry init,config={}", registryConfig);
+
+        //JVM 退出前 执行
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                registry.destroy();
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }));
+
     }
 
 
-    public static void init(){
+    public static void init() {
         RpcConfig newConfig;
-        try{
+        try {
             newConfig = ConfigUtils.loadConfig(RpcConfig.class, RpcConstant.DEFAULT_CONFIG_PREFIX);
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error(e.getMessage());
             newConfig = new RpcConfig();
         }
@@ -43,15 +58,15 @@ public class RpcApplication {
     }
 
     /**
+     * @return com.zyl.longrpc.config.RpcConfig
      * @Description 获取配置
      * @Date 3:13 PM 11/28/2024
      * @Author yl.zhan
-     * @return com.zyl.longrpc.config.RpcConfig
      **/
     public static RpcConfig getRpcConfig() {
-        if(rpcConfig==null){
-            synchronized(RpcApplication.class){
-                if(rpcConfig==null){
+        if (rpcConfig == null) {
+            synchronized (RpcApplication.class) {
+                if (rpcConfig == null) {
                     init();
                 }
             }
