@@ -1,2 +1,2 @@
 etcd=com.zyl.longrpc.registry.EtcdRegistry
-
+zookeeper=com.zyl.longrpc.registry.ZookeeperRegistry
