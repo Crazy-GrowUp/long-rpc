@@ -6,7 +6,7 @@ package com.zyl.longrpc.protocol;
  * @author: yl.zhan
  * @create: 2024-12-06 16:45
  **/
-public class ProtocolConstant {
+public interface ProtocolConstant {
 
     /**
      * 消息头长度
