@@ -36,20 +36,24 @@ public class TcpServerHandler implements Handler<NetSocket> {
             //使用反射调用方法
             try {
                 Class<?> aClass = LocalRegistry.get(rpcRequest.getServiceName());
-                Method method;
-                if(rpcRequest.getParameterTypes().length>0){
-                    // 有参方法
-                    method = aClass.getMethod(rpcRequest.getMethodName(), rpcRequest.getParameterTypes());
-                }else{
-                    //无参方法
-                    method = aClass.getMethod(rpcRequest.getMethodName());
-                }
-                Object result;
-                if(rpcRequest.getArgs()==null){
-                     result = method.invoke(aClass.getDeclaredConstructor().newInstance());
-                }else{
-                    result = method.invoke(aClass.getDeclaredConstructor().newInstance(),rpcRequest.getArgs());
-                }
+                Method method = aClass.getMethod(rpcRequest.getMethodName(), rpcRequest.getParameterTypes());
+                Object result = method.invoke(aClass.getDeclaredConstructor().newInstance(),rpcRequest.getArgs());
+
+//                Method method;
+//                if(rpcRequest.getParameterTypes().length>0){
+//                    // 有参方法
+//                    method = aClass.getMethod(rpcRequest.getMethodName(), rpcRequest.getParameterTypes());
+//                }else{
+//                    //无参方法
+//                    method = aClass.getMethod(rpcRequest.getMethodName());
+//                }
+//                Object result;
+//                if(rpcRequest.getArgs()==null){
+//                     result = method.invoke(aClass.getDeclaredConstructor().newInstance());
+//                }else{
+//                    result = method.invoke(aClass.getDeclaredConstructor().newInstance(),rpcRequest.getArgs());
+//                }
+
                 rpcResponse.setData(result);
                 rpcResponse.setDataType(method.getReturnType());
                 rpcResponse.setMessage("OK");

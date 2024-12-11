@@ -23,12 +23,12 @@ public class ConsumerExample {
 
         UserService userService = ServiceProxyFactory.getProxy(UserService.class);
 
-//        short number = userService.getNumber();
+        short number = userService.getNumber();
         User user = new User();
         user.setName("1");
         User user1 = userService.getUser(user);
         System.out.println("user1:"+user1);
-//        System.out.println("number:"+number);
+        System.out.println("number:"+number);
 
 //        UserService userService2 = ServiceProxyFactory.getProxy(UserService.class);
 //        User user2 = userService2.getUser(user);
