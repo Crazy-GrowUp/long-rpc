@@ -10,6 +10,7 @@ import com.zyl.longrpc.registry.Registry;
 import com.zyl.longrpc.registry.RegistryFactory;
 import com.zyl.longrpc.server.HttpServerLong;
 import com.zyl.longrpc.server.VertxHttpServer;
+import com.zyl.longrpc.server.tcp.VertxTcpServer;
 
 /**
  * @program: long-rpc
@@ -45,12 +46,13 @@ public class EasyProviderExample {
 
         // ===================使用Etcd服务注册end=================
 
-
+        VertxTcpServer vertxTcpServer = new VertxTcpServer();
+        vertxTcpServer.doStart(rpcConfig.getServerPort());
 
         // 启动服务提供者
-        HttpServerLong httpServer = new VertxHttpServer();
+//        HttpServerLong httpServer = new VertxHttpServer();
 //        httpServer.doStart(8080);
-        httpServer.doStart(RpcApplication.getRpcConfig().getServerPort());
+//        httpServer.doStart(RpcApplication.getRpcConfig().getServerPort());
 //        httpServer.doStart(ConfigUtils.loadConfig(RpcConfig.class, RpcConstant.DEFAULT_CONFIG_PREFIX).getServerPort());
     }
 }

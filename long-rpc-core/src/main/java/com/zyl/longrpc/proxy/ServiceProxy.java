@@ -1,6 +1,7 @@
 package com.zyl.longrpc.proxy;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import com.zyl.longrpc.RpcApplication;
@@ -9,15 +10,25 @@ import com.zyl.longrpc.constant.RpcConstant;
 import com.zyl.longrpc.model.RpcRequest;
 import com.zyl.longrpc.model.RpcResponse;
 import com.zyl.longrpc.model.ServiceMetaInfo;
+import com.zyl.longrpc.protocol.*;
 import com.zyl.longrpc.registry.Registry;
 import com.zyl.longrpc.registry.RegistryFactory;
 import com.zyl.longrpc.serializer.JdkSerializer;
 import com.zyl.longrpc.serializer.Serializer;
 import com.zyl.longrpc.serializer.SerializerFactory;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.net.NetClient;
+import io.vertx.core.net.NetSocket;
+import org.checkerframework.checker.units.qual.C;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * @program: long-rpc
@@ -56,7 +67,7 @@ public class ServiceProxy implements InvocationHandler {
             // 查看对于的服务列表
             List<ServiceMetaInfo> serviceMetaInfoList = registry.serviceDiscovery(serviceMetaInfo.getServiceKey());
             if (CollUtil.isEmpty(serviceMetaInfoList)) {
-                throw  new RuntimeException("暂无服务地址");
+                throw new RuntimeException("暂无服务地址");
             }
             // 暂时取第一个
             ServiceMetaInfo selectedServiceMetaInfo = serviceMetaInfoList.get(0);
@@ -70,21 +81,85 @@ public class ServiceProxy implements InvocationHandler {
 //                    .body(bodyBytes)
 //                    .execute();
 
+            //======================= HTTP请求======================
+//            httpResponse = HttpRequest.post(selectedServiceMetaInfo.getServiceAddress())
+//                    .body(bodyBytes)
+//                    .execute();
+//
+//            byte[] result = httpResponse.bodyBytes();
+//
+//            // 反序列化
+//            RpcResponse rpcResponse = serializer.deserialize(result, RpcResponse.class);
+//
+//            return rpcResponse.getData();
+            //======================= HTTP请求end======================
 
-            httpResponse = HttpRequest.post(selectedServiceMetaInfo.getServiceAddress())
-                    .body(bodyBytes)
-                    .execute();
+            // ========================TCP请求=========================
 
-            byte[] result = httpResponse.bodyBytes();
+            Vertx vertx = Vertx.vertx();
+            NetClient netClient = vertx.createNetClient();
+            // 同步方法
+            CompletableFuture<RpcResponse> completableFuture = new CompletableFuture<>();
+            netClient.connect(selectedServiceMetaInfo.getServicePort(), selectedServiceMetaInfo.getServiceHost(), new Handler<AsyncResult<NetSocket>>() {
+                @Override
+                public void handle(AsyncResult<NetSocket> result) {
+                    //这是一个异步的，需要使用CompletableFuture 等等变成同步
+                    if (result.succeeded()) {
+                        NetSocket socket = result.result();
+                        // 发送请求
+                        ProtocolMessage<RpcRequest> rpcRequestProtocolMessage = new ProtocolMessage<>();
+                        ProtocolMessage.Header header = new ProtocolMessage.Header();
+                        header.setMagic(ProtocolConstant.PROTOCOL_MAGIC);
+                        header.setType((byte) ProtocolMessageTypeEnum.REQUEST.getKey());
+                        header.setStatus((byte)ProtocolMessageStatusEnum.OK.getValue());
+                        header.setSerializer((byte)ProtocolMessageSerializerEnum.getByValue(RpcApplication.getRpcConfig().getSerializer()).getKey());
+                        header.setRequestId(IdUtil.getSnowflakeNextId());
+                        header.setVersion(ProtocolConstant.PROTOCOL_VERSION);
 
-            // 反序列化
-            RpcResponse rpcResponse = serializer.deserialize(result, RpcResponse.class);
+                        rpcRequestProtocolMessage.setHeader(header);
+                        rpcRequestProtocolMessage.setBody(rpcRequest);
 
+                        try {
+                            Buffer encode = ProtocolMessageEncoder.encode(rpcRequestProtocolMessage);
+                            // TCP调用
+                            socket.write(encode);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+
+
+                        // 处理响应
+                        socket.handler(new Handler<Buffer>() {
+                            @Override
+                            public void handle(Buffer buffer) {
+                                ProtocolMessage<RpcResponse> protocolMessage;
+                                try {
+                                    protocolMessage = (ProtocolMessage<RpcResponse>) ProtocolMessageDecoder.decode(buffer);
+                                } catch (IOException e) {
+                                    throw new RuntimeException(e);
+                                }
+                                RpcResponse response = protocolMessage.getBody();
+                                completableFuture.complete(response);
+                            }
+                        });
+                    } else {
+                        System.out.println("TCP连接失败,"
+                                + selectedServiceMetaInfo.getServiceAddress()
+                                + ":" + selectedServiceMetaInfo.getServicePort());
+                    }
+                }
+            });
+
+            // 等等完成
+            RpcResponse rpcResponse = completableFuture.get();
             return rpcResponse.getData();
+
+            // ========================TCP请求end======================
+
 
         } catch (Exception e) {
             e.printStackTrace();
-        }finally {
+        } finally {
             if (httpResponse != null) {
                 httpResponse.close();
             }

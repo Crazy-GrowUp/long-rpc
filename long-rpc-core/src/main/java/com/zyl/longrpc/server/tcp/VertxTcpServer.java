@@ -27,22 +27,24 @@ public class VertxTcpServer implements HttpServerLong {
         //TCP服务端
         NetServer netServer = vertx.createNetServer();
 
-        netServer.connectHandler(new Handler<NetSocket>() {
-            @Override
-            public void handle(NetSocket netSocket) {
-                netSocket.handler(new Handler<Buffer>() {
-                    @Override
-                    public void handle(Buffer buffer) {
-                        // 获取数据字节
-                        byte[] bytes = buffer.getBytes();
-                        System.out.println("服务器收到：" + String.valueOf(bytes));
-                        //处理消息
-                        byte[] bytes1 = handleRequest(bytes);
-                        netSocket.write(Buffer.buffer(bytes1));
-                    }
-                });
-            }
-        });
+        netServer.connectHandler(new TcpServerHandler());
+
+//        netServer.connectHandler(new Handler<NetSocket>() {
+//            @Override
+//            public void handle(NetSocket netSocket) {
+//                netSocket.handler(new Handler<Buffer>() {
+//                    @Override
+//                    public void handle(Buffer buffer) {
+//                        // 获取数据字节
+//                        byte[] bytes = buffer.getBytes();
+//                        System.out.println("服务器收到：" + String.valueOf(bytes));
+//                        //处理消息
+//                        byte[] bytes1 = handleRequest(bytes);
+//                        netSocket.write(Buffer.buffer(bytes1));
+//                    }
+//                });
+//            }
+//        });
 
 
         netServer.listen(port,new Handler<AsyncResult<NetServer>>() {
