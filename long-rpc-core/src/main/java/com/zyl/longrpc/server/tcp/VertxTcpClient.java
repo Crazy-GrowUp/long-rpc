@@ -1,12 +1,22 @@
 package com.zyl.longrpc.server.tcp;
 
+import cn.hutool.core.util.IdUtil;
 import com.google.protobuf.Message;
+import com.zyl.longrpc.RpcApplication;
+import com.zyl.longrpc.model.RpcRequest;
+import com.zyl.longrpc.model.RpcResponse;
+import com.zyl.longrpc.model.ServiceMetaInfo;
+import com.zyl.longrpc.protocol.*;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.net.NetClient;
 import io.vertx.core.net.NetSocket;
+
+import java.io.IOException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 /**
  * @program: long-rpc
@@ -48,6 +58,55 @@ public class VertxTcpClient {
                 }
             }
         });
+    }
+
+    public static RpcResponse doRpcResponse(RpcRequest rpcRequest, ServiceMetaInfo serviceMetaInfo) throws ExecutionException, InterruptedException {
+        Vertx vertx = Vertx.vertx();
+        NetClient netClient = vertx.createNetClient();
+        Integer servicePort = serviceMetaInfo.getServicePort();
+        String serviceHost = serviceMetaInfo.getServiceHost();
+
+        CompletableFuture<RpcResponse> completableFuture = new CompletableFuture<>();
+        netClient.connect(servicePort,serviceHost,new Handler<AsyncResult<NetSocket>>() {
+            @Override
+            public void handle(AsyncResult<NetSocket> netSocketAsyncResult) {
+                if (netSocketAsyncResult.succeeded()) {
+                    NetSocket socket = netSocketAsyncResult.result();
+                    // 发送
+                    ProtocolMessage.Header header = new ProtocolMessage.Header();
+                    header.setMagic(ProtocolConstant.PROTOCOL_MAGIC);
+                    header.setSerializer((byte) ProtocolMessageSerializerEnum.getByValue(RpcApplication.getRpcConfig().getSerializer()).getKey());
+                    header.setType((byte) ProtocolMessageTypeEnum.REQUEST.getKey());
+                    header.setStatus((byte) ProtocolMessageStatusEnum.OK.getValue());
+                    header.setRequestId(IdUtil.getSnowflakeNextId());
+                    header.setVersion(ProtocolConstant.PROTOCOL_VERSION);
+                    try {
+                        Buffer snedBuffer = ProtocolMessageEncoder.encode(new ProtocolMessage<>(header, rpcRequest));
+                        socket.write(snedBuffer);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    // 解析
+                    TcpBufferHandlerWrapper tcpBufferHandlerWrapper = new TcpBufferHandlerWrapper(buffer -> {
+                        //反射调用
+                        try {
+                            ProtocolMessage<RpcResponse> decode = (ProtocolMessage<RpcResponse>) ProtocolMessageDecoder.decode(buffer);
+                            RpcResponse body = decode.getBody();
+                            completableFuture.complete(body);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+
+                    });
+                    socket.handler(tcpBufferHandlerWrapper);
+                }
+            }
+        });
+        RpcResponse rpcResponse = completableFuture.get();
+        netClient.close();
+        return rpcResponse;
+
     }
 
     public static void main(String[] args){

@@ -16,6 +16,7 @@ import com.zyl.longrpc.registry.RegistryFactory;
 import com.zyl.longrpc.serializer.JdkSerializer;
 import com.zyl.longrpc.serializer.Serializer;
 import com.zyl.longrpc.serializer.SerializerFactory;
+import com.zyl.longrpc.server.tcp.VertxTcpClient;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
@@ -96,65 +97,69 @@ public class ServiceProxy implements InvocationHandler {
 
             // ========================TCP请求=========================
 
-            Vertx vertx = Vertx.vertx();
-            NetClient netClient = vertx.createNetClient();
-            // 同步方法
-            CompletableFuture<RpcResponse> completableFuture = new CompletableFuture<>();
-            netClient.connect(selectedServiceMetaInfo.getServicePort(), selectedServiceMetaInfo.getServiceHost(), new Handler<AsyncResult<NetSocket>>() {
-                @Override
-                public void handle(AsyncResult<NetSocket> result) {
-                    //这是一个异步的，需要使用CompletableFuture 等等变成同步
-                    if (result.succeeded()) {
-                        NetSocket socket = result.result();
-                        // 发送请求
-                        ProtocolMessage<RpcRequest> rpcRequestProtocolMessage = new ProtocolMessage<>();
-                        ProtocolMessage.Header header = new ProtocolMessage.Header();
-                        header.setMagic(ProtocolConstant.PROTOCOL_MAGIC);
-                        header.setType((byte) ProtocolMessageTypeEnum.REQUEST.getKey());
-                        header.setStatus((byte)ProtocolMessageStatusEnum.OK.getValue());
-                        header.setSerializer((byte)ProtocolMessageSerializerEnum.getByValue(RpcApplication.getRpcConfig().getSerializer()).getKey());
-                        header.setRequestId(IdUtil.getSnowflakeNextId());
-                        header.setVersion(ProtocolConstant.PROTOCOL_VERSION);
+//            Vertx vertx = Vertx.vertx();
+//            NetClient netClient = vertx.createNetClient();
+//            // 同步方法
+//            CompletableFuture<RpcResponse> completableFuture = new CompletableFuture<>();
+//            netClient.connect(selectedServiceMetaInfo.getServicePort(), selectedServiceMetaInfo.getServiceHost(), new Handler<AsyncResult<NetSocket>>() {
+//                @Override
+//                public void handle(AsyncResult<NetSocket> result) {
+//                    //这是一个异步的，需要使用CompletableFuture 等等变成同步
+//                    if (result.succeeded()) {
+//                        NetSocket socket = result.result();
+//                        // 发送请求
+//                        ProtocolMessage<RpcRequest> rpcRequestProtocolMessage = new ProtocolMessage<>();
+//                        ProtocolMessage.Header header = new ProtocolMessage.Header();
+//                        header.setMagic(ProtocolConstant.PROTOCOL_MAGIC);
+//                        header.setType((byte) ProtocolMessageTypeEnum.REQUEST.getKey());
+//                        header.setStatus((byte)ProtocolMessageStatusEnum.OK.getValue());
+//                        header.setSerializer((byte)ProtocolMessageSerializerEnum.getByValue(RpcApplication.getRpcConfig().getSerializer()).getKey());
+//                        header.setRequestId(IdUtil.getSnowflakeNextId());
+//                        header.setVersion(ProtocolConstant.PROTOCOL_VERSION);
+//
+//                        rpcRequestProtocolMessage.setHeader(header);
+//                        rpcRequestProtocolMessage.setBody(rpcRequest);
+//
+//                        try {
+//                            Buffer encode = ProtocolMessageEncoder.encode(rpcRequestProtocolMessage);
+//                            // TCP调用
+//                            socket.write(encode);
+//                        } catch (IOException e) {
+//                            throw new RuntimeException(e);
+//                        }
+//
+//
+//                        // 处理响应
+//                        socket.handler(new Handler<Buffer>() {
+//                            @Override
+//                            public void handle(Buffer buffer) {
+//                                ProtocolMessage<RpcResponse> protocolMessage;
+//                                try {
+//                                    protocolMessage = (ProtocolMessage<RpcResponse>) ProtocolMessageDecoder.decode(buffer);
+//                                } catch (IOException e) {
+//                                    throw new RuntimeException(e);
+//                                }
+//                                RpcResponse response = protocolMessage.getBody();
+//                                completableFuture.complete(response);
+//                            }
+//                        });
+//                    } else {
+//                        System.out.println("TCP连接失败,"
+//                                + selectedServiceMetaInfo.getServiceAddress()
+//                                + ":" + selectedServiceMetaInfo.getServicePort());
+//                    }
+//                }
+//            });
+//
+//            // 等等完成
+//            RpcResponse rpcResponse = completableFuture.get();
+//            return rpcResponse.getData();
 
-                        rpcRequestProtocolMessage.setHeader(header);
-                        rpcRequestProtocolMessage.setBody(rpcRequest);
-
-                        try {
-                            Buffer encode = ProtocolMessageEncoder.encode(rpcRequestProtocolMessage);
-                            // TCP调用
-                            socket.write(encode);
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-
-
-                        // 处理响应
-                        socket.handler(new Handler<Buffer>() {
-                            @Override
-                            public void handle(Buffer buffer) {
-                                ProtocolMessage<RpcResponse> protocolMessage;
-                                try {
-                                    protocolMessage = (ProtocolMessage<RpcResponse>) ProtocolMessageDecoder.decode(buffer);
-                                } catch (IOException e) {
-                                    throw new RuntimeException(e);
-                                }
-                                RpcResponse response = protocolMessage.getBody();
-                                completableFuture.complete(response);
-                            }
-                        });
-                    } else {
-                        System.out.println("TCP连接失败,"
-                                + selectedServiceMetaInfo.getServiceAddress()
-                                + ":" + selectedServiceMetaInfo.getServicePort());
-                    }
-                }
-            });
-
-            // 等等完成
-            RpcResponse rpcResponse = completableFuture.get();
+            RpcResponse rpcResponse = VertxTcpClient.doRpcResponse(rpcRequest, selectedServiceMetaInfo);
             return rpcResponse.getData();
-
             // ========================TCP请求end======================
+
+
 
 
         } catch (Exception e) {
