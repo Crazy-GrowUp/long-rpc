@@ -1,0 +1,3 @@
+no=com.zyl.longrpc.fault.retry.NoRetryStrategy
+fixedInterval=com.zyl.longrpc.fault.retry.FixedIntervalRetryStrategy
+fibonacci=com.zyl.longrpc.fault.retry.FibonacciRetryStrategy

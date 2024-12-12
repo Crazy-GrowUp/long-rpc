@@ -51,4 +51,7 @@ public class RpcConfig {
 
     private String loadBalance = LoadBalancerKeys.RANDOM;
 
+
+    private RetryStrategyConfig retryStrategyConfig = new RetryStrategyConfig();
+
 }

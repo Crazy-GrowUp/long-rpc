@@ -5,6 +5,8 @@ import cn.hutool.http.HttpResponse;
 import com.zyl.longrpc.RpcApplication;
 import com.zyl.longrpc.config.RpcConfig;
 import com.zyl.longrpc.constant.RpcConstant;
+import com.zyl.longrpc.fault.retry.RetryStrategy;
+import com.zyl.longrpc.fault.retry.RetryStrategyFactory;
 import com.zyl.longrpc.loadbalancer.LoadBalancer;
 import com.zyl.longrpc.loadbalancer.LoadBalancerFactory;
 import com.zyl.longrpc.model.RpcRequest;
@@ -16,12 +18,14 @@ import com.zyl.longrpc.registry.RegistryFactory;
 import com.zyl.longrpc.serializer.Serializer;
 import com.zyl.longrpc.serializer.SerializerFactory;
 import com.zyl.longrpc.server.tcp.VertxTcpClient;
+import org.checkerframework.checker.units.qual.C;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 /**
  * @program: long-rpc
@@ -153,8 +157,14 @@ public class ServiceProxy implements InvocationHandler {
 //            // 等等完成
 //            RpcResponse rpcResponse = completableFuture.get();
 //            return rpcResponse.getData();
-
-            RpcResponse rpcResponse = VertxTcpClient.doRpcResponse(rpcRequest, selectedServiceMetaInfo);
+            RetryStrategy retryStrategy = RetryStrategyFactory.getRetryStrategy(RpcApplication.getRpcConfig().getRetryStrategyConfig().getStrategy());
+            RpcResponse rpcResponse = retryStrategy.doRetry(new Callable<RpcResponse>() {
+                @Override
+                public RpcResponse call() throws Exception {
+                    return VertxTcpClient.doRpcResponse(rpcRequest, selectedServiceMetaInfo);
+                }
+            });
+//            RpcResponse rpcResponse = VertxTcpClient.doRpcResponse(rpcRequest, selectedServiceMetaInfo);
             return rpcResponse.getData();
             // ========================TCP请求end======================
 

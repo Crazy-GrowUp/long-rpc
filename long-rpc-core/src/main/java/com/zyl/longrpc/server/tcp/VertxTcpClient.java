@@ -100,6 +100,8 @@ public class VertxTcpClient {
 
                     });
                     socket.handler(tcpBufferHandlerWrapper);
+                } else{
+                    completableFuture.completeExceptionally(netSocketAsyncResult.cause());
                 }
             }
         });
