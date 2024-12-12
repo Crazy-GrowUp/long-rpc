@@ -27,8 +27,30 @@ public class ConsumerExample {
         User user = new User();
         user.setName("1");
         User user1 = userService.getUser(user);
-        System.out.println("user1:"+user1);
-        System.out.println("number:"+number);
+        System.out.println("user1:" + user1);
+
+        user.setName("2");
+        user1 = userService.getUser(user);
+        System.out.println("user1:" + user1);
+
+        user.setName("3");
+        user1 = userService.getUser(user);
+        System.out.println("user1:" + user1);
+
+        user.setName("4");
+        user1 = userService.getUser(user);
+        System.out.println("user1:" + user1);
+
+        user.setName("5");
+        user1 = userService.getUser(user);
+        System.out.println("user1:" + user1);
+
+        user.setName("6");
+        user1 = userService.getUser(user);
+        System.out.println("user1:" + user1);
+
+
+//        System.out.println("number:"+number);
 
 //        UserService userService2 = ServiceProxyFactory.getProxy(UserService.class);
 //        User user2 = userService2.getUser(user);

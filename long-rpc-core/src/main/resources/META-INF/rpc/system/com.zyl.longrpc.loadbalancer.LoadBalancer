@@ -1,0 +1,4 @@
+consistentHash=com.zyl.longrpc.loadbalancer.ConsistentHashLoadBalancer
+roundRobin=com.zyl.longrpc.loadbalancer.RoundRobinLoadBalancer
+random=com.zyl.longrpc.loadbalancer.RandomLoadBalancer
+

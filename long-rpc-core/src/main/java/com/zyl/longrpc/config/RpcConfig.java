@@ -1,5 +1,6 @@
 package com.zyl.longrpc.config;
 
+import com.zyl.longrpc.loadbalancer.LoadBalancerKeys;
 import com.zyl.longrpc.serializer.SerializerKeys;
 import lombok.Data;
 
@@ -47,5 +48,7 @@ public class RpcConfig {
      * 注册中心配置
      **/
     private RegistryConfig registryConfig = new RegistryConfig();
+
+    private String loadBalance = LoadBalancerKeys.RANDOM;
 
 }

@@ -21,6 +21,7 @@ import org.checkerframework.checker.units.qual.A;
 import org.checkerframework.checker.units.qual.C;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Unit test for simple App.
@@ -194,6 +195,24 @@ public class AppTest
                 }
             }
         });
+
+
+    }
+
+    public void testAtomicInteger(){
+        AtomicInteger atomicInteger = new AtomicInteger(0);
+        int max = Integer.MAX_VALUE;
+        int andIncrement = 0;
+        while (max>0){
+            andIncrement = atomicInteger.getAndIncrement();
+            max--;
+        }
+        max = 100;
+        while (max>0){
+            andIncrement = atomicInteger.getAndIncrement();
+            max--;
+        }
+        System.out.println(andIncrement);
 
 
     }

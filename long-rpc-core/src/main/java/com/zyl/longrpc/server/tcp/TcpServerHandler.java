@@ -7,6 +7,7 @@ import com.zyl.longrpc.registry.LocalRegistry;
 import io.vertx.core.Handler;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.net.NetSocket;
+import io.vertx.core.net.SocketAddress;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -23,6 +24,10 @@ public class TcpServerHandler implements Handler<NetSocket> {
 
     @Override
     public void handle(NetSocket netSocket) {
+
+
+        SocketAddress socketAddress = netSocket.remoteAddress();
+//        System.out.println("客户端地址："+socketAddress.hostAddress());
 
         TcpBufferHandlerWrapper tcpBufferHandlerWrapper = new TcpBufferHandlerWrapper(buffer -> {
             ProtocolMessage<RpcRequest> protocolMessage;
@@ -55,7 +60,7 @@ public class TcpServerHandler implements Handler<NetSocket> {
 
 
             ProtocolMessage.Header header = protocolMessage.getHeader();
-            System.out.println("magic:"+header.getMagic());
+//            System.out.println("magic:"+header.getMagic());
             header.setType((byte)ProtocolMessageTypeEnum.RESPONSE.getKey());
 
             ProtocolMessage<RpcResponse> sendProtocolMessage = new ProtocolMessage<>(header, rpcResponse);

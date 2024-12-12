@@ -1,35 +1,27 @@
 package com.zyl.longrpc.proxy;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.IdUtil;
-import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpResponse;
 import com.zyl.longrpc.RpcApplication;
 import com.zyl.longrpc.config.RpcConfig;
 import com.zyl.longrpc.constant.RpcConstant;
+import com.zyl.longrpc.loadbalancer.LoadBalancer;
+import com.zyl.longrpc.loadbalancer.LoadBalancerFactory;
 import com.zyl.longrpc.model.RpcRequest;
 import com.zyl.longrpc.model.RpcResponse;
 import com.zyl.longrpc.model.ServiceMetaInfo;
-import com.zyl.longrpc.protocol.*;
+
 import com.zyl.longrpc.registry.Registry;
 import com.zyl.longrpc.registry.RegistryFactory;
-import com.zyl.longrpc.serializer.JdkSerializer;
 import com.zyl.longrpc.serializer.Serializer;
 import com.zyl.longrpc.serializer.SerializerFactory;
 import com.zyl.longrpc.server.tcp.VertxTcpClient;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
-import io.vertx.core.buffer.Buffer;
-import io.vertx.core.net.NetClient;
-import io.vertx.core.net.NetSocket;
-import org.checkerframework.checker.units.qual.C;
 
-import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
+import java.util.Map;
 
 /**
  * @program: long-rpc
@@ -71,7 +63,14 @@ public class ServiceProxy implements InvocationHandler {
                 throw new RuntimeException("暂无服务地址");
             }
             // 暂时取第一个
-            ServiceMetaInfo selectedServiceMetaInfo = serviceMetaInfoList.get(0);
+//            ServiceMetaInfo selectedServiceMetaInfo = serviceMetaInfoList.get(0);
+            // 使用负载均衡获取服务接口信息
+            Map<String,Object> requestParams = new HashMap<>();
+            requestParams.put("methodName",method.getName());
+            requestParams.put("args",args);
+            LoadBalancer loadBalancer = LoadBalancerFactory.getLoadBalancer(RpcApplication.getRpcConfig().getLoadBalance());
+            ServiceMetaInfo selectedServiceMetaInfo = loadBalancer.select(requestParams, serviceMetaInfoList);
+
 
             //=================从注册中心获取服务提供者的请求地址 end====================
 
