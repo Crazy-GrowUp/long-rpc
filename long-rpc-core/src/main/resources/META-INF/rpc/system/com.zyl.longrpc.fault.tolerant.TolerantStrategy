@@ -1,0 +1,4 @@
+failBack=com.zyl.longrpc.fault.tolerant.FailBackTolerantStrategy
+failFast=com.zyl.longrpc.fault.tolerant.FailFastTolerantStrategy
+failOver=com.zyl.longrpc.fault.tolerant.FailOverTolerantStrategy
+failSafe=com.zyl.longrpc.fault.tolerant.FailSafeTolerantStrategy

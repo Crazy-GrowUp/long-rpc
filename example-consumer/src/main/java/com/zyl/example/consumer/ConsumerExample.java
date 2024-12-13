@@ -31,23 +31,23 @@ public class ConsumerExample {
 
         user.setName("2");
         user1 = userService.getUser(user);
-        System.out.println("user1:" + user1);
+        System.out.println("user2:" + user1);
 
         user.setName("3");
         user1 = userService.getUser(user);
-        System.out.println("user1:" + user1);
+        System.out.println("user3:" + user1);
 
         user.setName("4");
         user1 = userService.getUser(user);
-        System.out.println("user1:" + user1);
+        System.out.println("user4:" + user1.getName());
 
         user.setName("5");
         user1 = userService.getUser(user);
-        System.out.println("user1:" + user1);
+        System.out.println("user5:" + user1.getName());
 
         user.setName("6");
         user1 = userService.getUser(user);
-        System.out.println("user1:" + user1);
+        System.out.println("user6:" + user1.getName());
 
 
 //        System.out.println("number:"+number);

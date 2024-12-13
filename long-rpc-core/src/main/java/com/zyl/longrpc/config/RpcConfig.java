@@ -1,5 +1,6 @@
 package com.zyl.longrpc.config;
 
+import com.zyl.longrpc.fault.tolerant.TolerantStrategyKeys;
 import com.zyl.longrpc.loadbalancer.LoadBalancerKeys;
 import com.zyl.longrpc.serializer.SerializerKeys;
 import lombok.Data;
@@ -53,5 +54,9 @@ public class RpcConfig {
 
 
     private RetryStrategyConfig retryStrategyConfig = new RetryStrategyConfig();
+
+
+    private String tolerantStrategy = TolerantStrategyKeys.FAIL_FAST;
+
 
 }

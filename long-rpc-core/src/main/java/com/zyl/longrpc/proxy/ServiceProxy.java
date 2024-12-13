@@ -7,6 +7,8 @@ import com.zyl.longrpc.config.RpcConfig;
 import com.zyl.longrpc.constant.RpcConstant;
 import com.zyl.longrpc.fault.retry.RetryStrategy;
 import com.zyl.longrpc.fault.retry.RetryStrategyFactory;
+import com.zyl.longrpc.fault.tolerant.TolerantStrategy;
+import com.zyl.longrpc.fault.tolerant.TolerantStrategyFactory;
 import com.zyl.longrpc.loadbalancer.LoadBalancer;
 import com.zyl.longrpc.loadbalancer.LoadBalancerFactory;
 import com.zyl.longrpc.model.RpcRequest;
@@ -22,6 +24,7 @@ import org.checkerframework.checker.units.qual.C;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +54,7 @@ public class ServiceProxy implements InvocationHandler {
                 .args(args)
                 .build();
         HttpResponse httpResponse = null;
+        List<ServiceMetaInfo> serviceMetaInfoList = new ArrayList<>();
         try {
             // 序列化
             byte[] bodyBytes = serializer.serialize(rpcRequest);
@@ -62,16 +66,16 @@ public class ServiceProxy implements InvocationHandler {
             serviceMetaInfo.setServiceName(method.getDeclaringClass().getName());
             serviceMetaInfo.setServiceVersion(RpcConstant.DEFAULT_SERVICE_VERSION);
             // 查看对于的服务列表
-            List<ServiceMetaInfo> serviceMetaInfoList = registry.serviceDiscovery(serviceMetaInfo.getServiceKey());
+            serviceMetaInfoList = registry.serviceDiscovery(serviceMetaInfo.getServiceKey());
             if (CollUtil.isEmpty(serviceMetaInfoList)) {
                 throw new RuntimeException("暂无服务地址");
             }
             // 暂时取第一个
 //            ServiceMetaInfo selectedServiceMetaInfo = serviceMetaInfoList.get(0);
             // 使用负载均衡获取服务接口信息
-            Map<String,Object> requestParams = new HashMap<>();
-            requestParams.put("methodName",method.getName());
-            requestParams.put("args",args);
+            Map<String, Object> requestParams = new HashMap<>();
+            requestParams.put("methodName", method.getName());
+            requestParams.put("args", args);
             LoadBalancer loadBalancer = LoadBalancerFactory.getLoadBalancer(RpcApplication.getRpcConfig().getLoadBalance());
             ServiceMetaInfo selectedServiceMetaInfo = loadBalancer.select(requestParams, serviceMetaInfoList);
 
@@ -169,15 +173,21 @@ public class ServiceProxy implements InvocationHandler {
             // ========================TCP请求end======================
 
 
-
-
         } catch (Exception e) {
-            e.printStackTrace();
+            //使用容错机制
+            TolerantStrategy tolerantStrategy = TolerantStrategyFactory.getTolerantStrategy(RpcApplication.getRpcConfig().getTolerantStrategy());
+            Map<String, Object> context = new HashMap<>();
+            context.put("rpcRequest", rpcRequest);
+            context.put("serviceMetaInfoList", serviceMetaInfoList);
+            context.put("exception", e);
+            RpcResponse rpcResponse = tolerantStrategy.doTolerant(context, e);
+            return rpcResponse.getData();
+//            e.printStackTrace();
         } finally {
             if (httpResponse != null) {
                 httpResponse.close();
             }
         }
-        return null;
+//        return null;
     }
 }
