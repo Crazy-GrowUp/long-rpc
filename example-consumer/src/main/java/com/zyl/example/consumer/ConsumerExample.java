@@ -2,6 +2,7 @@ package com.zyl.example.consumer;
 
 import com.zyl.example.common.model.User;
 import com.zyl.example.common.service.UserService;
+import com.zyl.longrpc.bootstrap.ConsumerBootstrap;
 import com.zyl.longrpc.config.RpcConfig;
 import com.zyl.longrpc.constant.RpcConstant;
 import com.zyl.longrpc.proxy.ServiceProxyFactory;
@@ -17,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ConsumerExample {
     public static void main(String[] args) {
+        ConsumerBootstrap.init();
 
 //        RpcConfig rpcConfig = RpcApplication.getRpcConfig();
 //        RpcConfig rpcConfig = ConfigUtils.loadConfig(RpcConfig.class, RpcConstant.DEFAULT_CONFIG_PREFIX);
